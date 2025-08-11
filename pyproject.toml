@@ -1,0 +1,12 @@
+[project]
+name = "simpleros"
+version = "0.0.1"
+description = "A lightweight, Python-first ROS alternative using Zenoh and Cap'n Proto."
+dependencies = [
+    "eclipse-zenoh",
+    "capnpy"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simpleros*"]
