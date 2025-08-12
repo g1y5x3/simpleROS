@@ -16,6 +16,7 @@ def main():
             i += 1
             time.sleep(1)
     except KeyboardInterrupt:
+        talker_node.shutdown()
         pass
 
 

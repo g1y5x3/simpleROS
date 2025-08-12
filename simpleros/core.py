@@ -15,6 +15,15 @@ def _get_session() -> zenoh.Session:
     return _session
 
 
+def _shutdown_session() -> None:
+    """Closes the global Zenoh session."""
+    global _session
+    if _session is not None:
+        print("Closing Zenoh session...")
+        _session.close()
+        _session = None
+
+
 class _Publisher:
     """Internal Publisher class using Zenoh."""
 
@@ -78,3 +87,8 @@ class Node:
             f"Node '{self.name}' creating subscription for topic '{topic}' with type '{msg_type.__name__}'."
         )
         return _Subscriber(self.session, topic, msg_type, callback)
+
+    def shutdown(self) -> None:
+        """Shuts down the node and closes the Zenoh session."""
+        print(f"Shutting down node '{self.name}'...")
+        _shutdown_session()
