@@ -1,3 +1,3 @@
 from .core import Node
 
-__all__ = ['Node']
+__all__ = ["Node"]
