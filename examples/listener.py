@@ -13,7 +13,7 @@ def main():
 
     try:
         while True:
-            time.sleep(0.1)  # Keep the listener alive to receive messages
+            time.sleep(0.1)
     except KeyboardInterrupt:
         pass
 
