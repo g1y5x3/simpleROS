@@ -23,3 +23,7 @@ include = ["simpleros*"]
 exclude = [
     "simpleros/msg/*_msg.py",
 ]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
