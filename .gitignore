@@ -1,2 +1,4 @@
 *.pyc
 *.egg-info/
+
+src/simpleros/msg/*_msg.py
