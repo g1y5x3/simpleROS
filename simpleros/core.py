@@ -1,3 +1,4 @@
+import time
 import zenoh
 from typing import Callable, Optional, Any
 
@@ -93,6 +94,14 @@ class Node:
             f"Node '{self.name}' creating subscription for topic '{topic}' with type '{msg_type.__name__}'."
         )
         return _Subscriber(self.session, topic, msg_type, callback)
+
+    def spin(self) -> None:
+        """Blocks execution to process callbacks until a KeyboardInterrupt (Ctrl+C)."""
+        try:
+            while True:
+                time.sleep(1)  # Sleep to prevent high CPU usage
+        except KeyboardInterrupt:
+            print("\nReceiving keyboard interrupt...")
 
     def shutdown(self) -> None:
         """Shuts down the node and closes the Zenoh session."""
