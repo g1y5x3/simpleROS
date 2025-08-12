@@ -8,15 +8,14 @@ def listener_callback(msg: String):
 
 
 def main():
-    listener_node = Node("listener")
-    listener_node.create_subscriber("chatter", String, listener_callback)
+    with Node("listener") as listener_node:
+        listener_node.create_subscriber("chatter", String, listener_callback)
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        listener_node.shutdown()
-        pass
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
 
 
 if __name__ == "__main__":

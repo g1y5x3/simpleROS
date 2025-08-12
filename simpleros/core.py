@@ -74,6 +74,12 @@ class Node:
         self.name = node_name
         self.session = _get_session()
 
+    def __enter__(self) -> "Node":
+        return self
+
+    def __exit__(self, exc_type, exc_value, exec_tb) -> None:
+        self.shutdown()
+
     def create_publisher(self, topic: str, msg_type: type) -> _Publisher:
         print(
             f"Node '{self.name}' creating publisher for topic '{topic}' with type '{msg_type.__name__}'."
