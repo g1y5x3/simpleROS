@@ -12,7 +12,7 @@ def timer_callback(publisher, i):
 def main():
     with Node("talker") as talker_node:
         publisher = talker_node.create_publisher("chatter", String)
-        i = [0]  # in order to pass by reference instead of value
+        i = [0]  # in order to pass by reference
         talker_node.create_timer(1.0, timer_callback, publisher, i)
         talker_node.spin()
 

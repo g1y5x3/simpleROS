@@ -9,7 +9,7 @@ def listener_callback(msg: String):
 def main():
     with Node("listener") as listener_node:
         listener_node.create_subscriber("chatter", String, listener_callback)
-        listener_node.spin()  # Blocks execution to process callbacks
+        listener_node.spin()
 
 
 if __name__ == "__main__":

@@ -16,12 +16,12 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["simpleros*"]
+where = ["src"]
 
 [tool.ruff]
 exclude = [
-    "simpleros/msg/*_msg.py",
+    # these files are automatically generated
+    "src/simpleros/msg/*_msg.py",
 ]
 line-length = 88
 
