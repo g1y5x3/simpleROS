@@ -27,6 +27,9 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"simpleros.msg" = ["*.capnp"]
+
 [tool.ruff]
 exclude = [
     # these files are automatically generated
