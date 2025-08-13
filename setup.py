@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(
     capnpy_schemas=[
-        "src/simpleros/msg/std_msg.capnp",
-        "src/simpleros/msg/geometry_msg.capnp",
+        "simpleros/msg/std_msg.capnp",
+        "simpleros/msg/geometry_msg.capnp",
     ],
     capnpy_options={
         "pyx": False,

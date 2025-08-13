@@ -2,4 +2,4 @@
 *.egg-info/
 
 dist
-src/simpleros/msg/*_msg.py
+simpleros/msg/*_msg.py
