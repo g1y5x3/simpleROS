@@ -64,11 +64,8 @@ class _Subscriber:
 
     def _internal_callback(self, sample: zenoh.Sample) -> None:
         """Internal handler that receives Zbytes from Zenoh and deserializes it."""
-        try:
-            msg = self.msg_type.loads(sample.payload.to_bytes())
-            self.user_callback(msg)
-        except Exception as e:
-            print(f"Error deserializing message on topic '{self.key}': {e}")
+        msg = self.msg_type.loads(sample.payload.to_bytes())
+        self.user_callback(msg)
 
 
 class _RepeatingTimer(threading.Thread):

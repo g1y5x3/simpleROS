@@ -1,5 +1,4 @@
 import math
-import sys
 
 import pygame
 
@@ -19,15 +18,10 @@ class Spaceship:
         self.lin_vel = 0.0
         self.ang_vel = 0.0
 
-        try:
-            self.original_image = pygame.image.load(
-                "examples/spaceship.png"
-            ).convert_alpha()
-            self.original_image = pygame.transform.scale(self.original_image, (50, 42))
-        except pygame.error as e:
-            print(f"Error loading image 'examples/spaceship.png': {e}")
-            sys.exit()
-
+        self.original_image = pygame.image.load(
+            "examples/spaceship.png"
+        ).convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (50, 42))
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
@@ -74,26 +68,24 @@ class SpaceshipSimNode:
         self.spaceship.ang_vel = msg.angular.z
 
     def run(self):
-        running = True
         try:
+            running = True
             while running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
 
-                # Calculate delta time for smooth movement
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            running = False
+
                 dt = self.clock.tick(60) / 1000.0  # seconds
-
-                # Update spaceship physics
                 self.spaceship.update(dt)
-
-                # Drawing is done in the main loop
                 self.screen.fill(BACKGROUND_COLOR)
                 self.spaceship.draw(self.screen)
                 pygame.display.flip()
+
         except KeyboardInterrupt:
-            print("\nSimulator loop interrupted.")
-        finally:
             pygame.quit()
 
 
