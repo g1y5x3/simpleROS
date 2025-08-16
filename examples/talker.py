@@ -4,13 +4,12 @@ from simpleros import Node
 from simpleros.msg.std_msg import String
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 
 def timer_callback(publisher, i):
     msg = String(f"hello world {i[0]}")
     publisher.publish(msg)
-    logger.info(f"TALKER SENDING: '{msg.data}'")
+    print(f"TALKER SENDING: '{msg.data}'")
     i[0] += 1
 
 

@@ -61,16 +61,23 @@ class _Subscriber:
 
     def __init__(
         self,
+        node_name: str,
         session: zenoh.Session,
         topic: str,
         msg_type: type,
         callback: Callable[[Any], None],
     ) -> None:
+        self.logger = logging.getLogger(f"{node_name}.subscriber(/{topic})")
         self.session = session
-        self.key = topic
         self.msg_type = msg_type
+
+        self.key = f"rt/{topic}"
+        self.token_key = f"{self.key}/sub:{get_msg_type_string(msg_type)}"
+        self.logger.debug(f"data key: {self.key}")
+        self.logger.debug(f"token key: {self.token_key}")
+
+        self.subscriber = session.declare_subscriber(self.key, self._internal_callback)
         self.user_callback = callback
-        self.subscriber = session.declare_subscriber(topic, self._internal_callback)
 
     def _internal_callback(self, sample: zenoh.Sample) -> None:
         """Internal handler that receives Zbytes from Zenoh and deserializes it."""
@@ -133,7 +140,7 @@ class Node:
             f"Node '{self.node_name}' creating subscription for topic '{topic}' with "
             f"type '{msg_type.__name__}'."
         )
-        return _Subscriber(self.session, topic, msg_type, callback)
+        return _Subscriber(self.node_name, self.session, topic, msg_type, callback)
 
     def create_timer(
         self, period_sec: float, callback: Callable, *args, **kwargs

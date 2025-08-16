@@ -1,5 +1,9 @@
+import logging
+
 from simpleros import Node
 from simpleros.msg.std_msg import String
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def listener_callback(msg: String):
