@@ -77,6 +77,7 @@ class _Subscriber:
         self.logger.debug(f"token key: {self.token_key}")
 
         self.subscriber = session.declare_subscriber(self.key, self._internal_callback)
+        self.token = session.liveliness().declare_token(self.token_key)
         self.user_callback = callback
 
     def _internal_callback(self, sample: zenoh.Sample) -> None:
