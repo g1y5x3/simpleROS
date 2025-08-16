@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 from typing import Any, Callable, List, Optional, Type
@@ -12,7 +13,6 @@ def _get_session() -> zenoh.Session:
     """Initializes and returns a global Zenoh session."""
     global _session
     if _session is None:
-        print("Opening Zenoh session...")
         conf = zenoh.Config()
         _session = zenoh.open(conf)
     return _session
@@ -22,7 +22,6 @@ def _shutdown_session() -> None:
     """Closes the global Zenoh session."""
     global _session
     if _session is not None:
-        print("Closing Zenoh session...")
         _session.close()
         _session = None
 
@@ -35,24 +34,24 @@ def get_msg_type_string(msg_type: Type) -> str:
 class _Publisher:
     """Internal Publisher class using Zenoh."""
 
-    def __init__(self, session: zenoh.Session, topic: str, msg_type: type) -> None:
+    def __init__(
+        self, node_name: str, session: zenoh.Session, topic: str, msg_type: type
+    ) -> None:
+        self.logger = logging.getLogger(f"{node_name}.publisher(/{topic})")
         self.session = session
         self.msg_type = msg_type
 
         self.key = f"rt/{topic}"
-        print(f"data key: {self.key}")
         self.token_key = f"{self.key}/pub:{get_msg_type_string(msg_type)}"
-        print(f"token key: {self.token_key}")
+        self.logger.debug(f"data key: {self.key}")
+        self.logger.debug(f"token key: {self.token_key}")
 
         self.publisher = session.declare_publisher(self.key)
         self.token = session.liveliness().declare_token(self.token_key)
 
     def publish(self, msg: Any) -> None:
         """Serializes and publishes a message."""
-        assert isinstance(msg, self.msg_type), (
-            f"Message type mismatch! Publisher for '{self.key}' expects "
-            f"'{self.msg_type.__name__}' but got '{type(msg).__name__}'"
-        )
+        assert isinstance(msg, self.msg_type)
         buf: bytes = msg.dumps()
         self.publisher.put(buf)
 
@@ -107,9 +106,12 @@ class Node:
     """The main user-facing class for creating publishers and subscribers."""
 
     def __init__(self, node_name: str) -> None:
-        self.name = node_name
-        self.session = _get_session()
+        self.logger = logging.getLogger(f"{node_name}")
+        self.node_name = node_name
         self._timers: List[_RepeatingTimer] = []
+
+        self.logger.debug(f"Creating node '{self.node_name}'...")
+        self.session = _get_session()
 
     def __enter__(self) -> "Node":
         return self
@@ -118,18 +120,18 @@ class Node:
         self.shutdown()
 
     def create_publisher(self, topic: str, msg_type: type) -> _Publisher:
-        print(
-            f"Node '{self.name}' creating publisher for topic '{topic}' with type"
-            f" '{msg_type.__name__}'."
+        self.logger.debug(
+            f"Node '{self.node_name}' creating publisher for topic '{topic}' with "
+            f"type '{msg_type.__name__}'."
         )
-        return _Publisher(self.session, topic, msg_type)
+        return _Publisher(self.node_name, self.session, topic, msg_type)
 
     def create_subscriber(
         self, topic: str, msg_type: type, callback: Callable[[Any], None]
     ) -> _Subscriber:
-        print(
-            f"Node '{self.name}' creating subscription for topic '{topic}' with type"
-            f" '{msg_type.__name__}'."
+        self.logger.debug(
+            f"Node '{self.node_name}' creating subscription for topic '{topic}' with "
+            f"type '{msg_type.__name__}'."
         )
         return _Subscriber(self.session, topic, msg_type, callback)
 
@@ -146,11 +148,11 @@ class Node:
             while True:
                 time.sleep(1)  # Sleep to prevent high CPU usage
         except KeyboardInterrupt:
-            print("\nReceiving keyboard interrupt...")
+            self.logger.info("\nReceiving keyboard interrupt...")
 
     def shutdown(self) -> None:
         """Shuts down the node and closes the Zenoh session."""
-        print(f"Shutting down node '{self.name}'...")
+        self.logger.debug(f"Shutting down node '{self.node_name}'...")
         for timer in self._timers:
             timer.stop()
         _shutdown_session()

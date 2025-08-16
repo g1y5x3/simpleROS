@@ -3,3 +3,4 @@
 
 dist
 simpleros/msg/*_msg.py
+examples/test.py
