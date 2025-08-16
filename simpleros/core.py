@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Type
 
 import zenoh
 
@@ -27,14 +27,25 @@ def _shutdown_session() -> None:
         _session = None
 
 
+def get_msg_type_string(msg_type: Type) -> str:
+    """Returns a string representation of the message type."""
+    return f"{msg_type.__module__.split('.')[2]}/{msg_type.__name__}"
+
+
 class _Publisher:
     """Internal Publisher class using Zenoh."""
 
     def __init__(self, session: zenoh.Session, topic: str, msg_type: type) -> None:
         self.session = session
-        self.key = topic
         self.msg_type = msg_type
-        self.publisher = session.declare_publisher(topic)
+
+        self.key = f"rt/{topic}"
+        print(f"data key: {self.key}")
+        self.token_key = f"{self.key}/pub:{get_msg_type_string(msg_type)}"
+        print(f"token key: {self.token_key}")
+
+        self.publisher = session.declare_publisher(self.key)
+        self.token = session.liveliness().declare_token(self.token_key)
 
     def publish(self, msg: Any) -> None:
         """Serializes and publishes a message."""
