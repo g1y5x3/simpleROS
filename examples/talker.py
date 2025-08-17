@@ -6,18 +6,18 @@ from simpleros.msg.std_msg import String
 logging.basicConfig(level=logging.DEBUG)
 
 
-def timer_callback(publisher, i):
-    msg = String(f"hello world {i[0]}")
-    publisher.publish(msg)
-    print(f"TALKER SENDING: '{msg.data}'")
-    i[0] += 1
-
-
 def main():
     with Node("talker") as talker_node:
-        publisher = talker_node.create_publisher("chatter", String)
+        talker_node.create_publisher("chatter", String)
+
+        def timer_callback(counter):
+            msg = String(f"hello world {counter[0]}")
+            talker_node.publish("chatter", msg)
+            print(f"TALKER SENDING: '{msg.data}'")
+            counter[0] += 1
+
         i = [0]  # in order to pass by reference
-        talker_node.create_timer(1.0, timer_callback, publisher, i)
+        talker_node.create_timer(1.0, timer_callback, i)
         talker_node.spin()
 
 
