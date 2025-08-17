@@ -24,6 +24,9 @@ dev = [
     "pytest",
 ]
 
+[project.scripts]
+ros = "simpleros.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 

@@ -42,7 +42,7 @@ class _Publisher:
         self.msg_type = msg_type
 
         self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
-        self.token_key = f"rt/{topic}/pub:{get_msg_type_string(msg_type)}"
+        self.token_key = f"rt/{node_name}/{topic}/pub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
 
@@ -75,7 +75,7 @@ class _Subscriber:
         self.msg_type = msg_type
 
         self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
-        self.token_key = f"rt/{topic}/sub:{get_msg_type_string(msg_type)}"
+        self.token_key = f"rt/{node_name}/{topic}/sub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
 
