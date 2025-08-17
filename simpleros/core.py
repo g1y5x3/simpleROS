@@ -41,7 +41,7 @@ class _Publisher:
         self.session = session
         self.msg_type = msg_type
 
-        self.key = f"rt/{topic}"
+        self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
         self.token_key = f"{self.key}/pub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
@@ -51,7 +51,10 @@ class _Publisher:
 
     def publish(self, msg: Any) -> None:
         """Serializes and publishes a message."""
-        assert isinstance(msg, self.msg_type)
+        assert isinstance(msg, self.msg_type), (
+            f"Expected message of type {self.msg_type.__name__}, "
+            f"but got {type(msg).__name__}."
+        )
         buf: bytes = msg.dumps()
         self.publisher.put(buf)
 
@@ -71,7 +74,7 @@ class _Subscriber:
         self.session = session
         self.msg_type = msg_type
 
-        self.key = f"rt/{topic}"
+        self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
         self.token_key = f"{self.key}/sub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
@@ -129,8 +132,7 @@ class Node:
 
     def create_publisher(self, topic: str, msg_type: type) -> _Publisher:
         self.logger.debug(
-            f"Node '{self.node_name}' creating publisher for topic '{topic}' with "
-            f"type '{msg_type.__name__}'."
+            f"Creating publisher for topic '{topic}' with type '{msg_type.__name__}'."
         )
         return _Publisher(self.node_name, self.session, topic, msg_type)
 
