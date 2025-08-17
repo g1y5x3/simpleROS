@@ -28,7 +28,7 @@ def _shutdown_session() -> None:
 
 def get_msg_type_string(msg_type: Type) -> str:
     """Returns a string representation of the message type."""
-    return f"{msg_type.__module__.split('.')[2]}/{msg_type.__name__}"
+    return f"{msg_type.__module__.split('.')[-1]}/{msg_type.__name__}"
 
 
 class _Publisher:
@@ -37,12 +37,12 @@ class _Publisher:
     def __init__(
         self, node_name: str, session: zenoh.Session, topic: str, msg_type: type
     ) -> None:
-        self.logger = logging.getLogger(f"{node_name}.publisher(/{topic})")
+        self.logger = logging.getLogger(f"{node_name}.publisher({topic})")
         self.session = session
         self.msg_type = msg_type
 
         self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
-        self.token_key = f"{self.key}/pub:{get_msg_type_string(msg_type)}"
+        self.token_key = f"rt/{topic}/pub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
 
@@ -70,12 +70,12 @@ class _Subscriber:
         msg_type: type,
         callback: Callable[[Any], None],
     ) -> None:
-        self.logger = logging.getLogger(f"{node_name}.subscriber(/{topic})")
+        self.logger = logging.getLogger(f"{node_name}.subscriber({topic})")
         self.session = session
         self.msg_type = msg_type
 
         self.key = f"rt/{topic}:{get_msg_type_string(msg_type)}"
-        self.token_key = f"{self.key}/sub:{get_msg_type_string(msg_type)}"
+        self.token_key = f"rt/{topic}/sub:{get_msg_type_string(msg_type)}"
         self.logger.debug(f"data key: {self.key}")
         self.logger.debug(f"token key: {self.token_key}")
 
@@ -140,7 +140,7 @@ class Node:
         self, topic: str, msg_type: type, callback: Callable[[Any], None]
     ) -> _Subscriber:
         self.logger.debug(
-            f"Node '{self.node_name}' creating subscription for topic '{topic}' with "
+            f"Creating subscription for topic '{topic}' with "
             f"type '{msg_type.__name__}'."
         )
         return _Subscriber(self.node_name, self.session, topic, msg_type, callback)

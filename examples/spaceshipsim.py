@@ -61,7 +61,7 @@ class SpaceshipSimNode:
         self.spaceship = Spaceship()
 
         self.node = node
-        self.node.create_subscriber("cmd_vel", Twist, self.cmd_vel_callback)
+        self.node.create_subscriber("spaceship1/cmd_vel", Twist, self.cmd_vel_callback)
 
     def cmd_vel_callback(self, msg: Twist):
         self.spaceship.lin_vel = msg.linear.x * 100  # Scale for better visuals
