@@ -1,7 +1,7 @@
 import logging
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, List, Optional, Type
 
 import zenoh
 
@@ -29,6 +29,31 @@ def _shutdown_session() -> None:
 def get_msg_type_string(msg_type: Type) -> str:
     """Returns a string representation of the message type."""
     return f"{msg_type.__module__.split('.')[2]}/{msg_type.__name__}"
+
+
+class _Publisher:
+    """Internal Publisher class using Zenoh."""
+
+    def __init__(
+        self, node_name: str, session: zenoh.Session, topic: str, msg_type: type
+    ) -> None:
+        self.logger = logging.getLogger(f"{node_name}.publisher(/{topic})")
+        self.session = session
+        self.msg_type = msg_type
+
+        self.key = f"rt/{topic}"
+        self.token_key = f"{self.key}/pub:{get_msg_type_string(msg_type)}"
+        self.logger.debug(f"data key: {self.key}")
+        self.logger.debug(f"token key: {self.token_key}")
+
+        self.publisher = session.declare_publisher(self.key)
+        self.token = session.liveliness().declare_token(self.token_key)
+
+    def publish(self, msg: Any) -> None:
+        """Serializes and publishes a message."""
+        assert isinstance(msg, self.msg_type)
+        buf: bytes = msg.dumps()
+        self.publisher.put(buf)
 
 
 class _Subscriber:
@@ -93,10 +118,6 @@ class Node:
         self.node_name = node_name
         self._timers: List[_RepeatingTimer] = []
 
-        self._publishers: Dict[str, zenoh.Publisher] = {}
-        self._subscribers: Dict[str, zenoh.Subscriber] = {}
-        self._msg_types: Dict[str, Type] = {}
-
         self.logger.debug(f"Creating node '{self.node_name}'...")
         self.session = _get_session()
 
@@ -106,32 +127,12 @@ class Node:
     def __exit__(self, exc_type, exc_value, exec_tb) -> None:
         self.shutdown()
 
-    def create_publisher(self, topic: str, msg_type: type) -> None:
-        """Creates a publisher for a given topic and message type."""
-        if topic in self._publishers:
-            raise ValueError(f"Publisher for topic '{topic}' already exists.")
-
-        key = f"rt/{topic}"
-        token_key = f"{key}/pub:{get_msg_type_string(msg_type)}"
-
+    def create_publisher(self, topic: str, msg_type: type) -> _Publisher:
         self.logger.debug(
-            f"Creating publisher for topic '{topic}' with type '{msg_type.__name__}'"
+            f"Node '{self.node_name}' creating publisher for topic '{topic}' with "
+            f"type '{msg_type.__name__}'."
         )
-        publisher = self.session.declare_publisher(key)
-        token_key = self.session.liveliness().declare_token(token_key)
-
-        self._publishers[topic] = publisher
-        self._msg_types[topic] = msg_type
-
-    def publish(self, topic: str, msg: Any) -> None:
-        """Publishes a message to a registered topic."""
-        if topic not in self._publishers:
-            raise ValueError(f"No publisher found for topic '{topic}'.")
-
-        assert isinstance(msg, self._msg_types[topic])
-
-        buf: bytes = msg.dumps()
-        self._publishers[topic].put(buf)
+        return _Publisher(self.node_name, self.session, topic, msg_type)
 
     def create_subscriber(
         self, topic: str, msg_type: type, callback: Callable[[Any], None]
